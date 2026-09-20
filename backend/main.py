@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import pyotp
 import json
 import asyncio
+import psutil
 
 app = FastAPI(title="Telemetry Monitor System API")
 
@@ -31,7 +32,12 @@ async def websocket_telemetry(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            data = {"cpu_load": 42.5, "memory_usage": 68.1, "network_rpm": 1200}
+            # Сбор реальных данных вашего ПК
+            data = {
+                "cpu_load": psutil.cpu_percent(interval=None),
+                "memory_usage": psutil.virtual_memory().percent,
+                "disk_usage": psutil.disk_usage("/").percent
+            }
             await websocket.send_text(json.dumps(data))
             await asyncio.sleep(1)
     except WebSocketDisconnect:
