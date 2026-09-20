@@ -98,16 +98,18 @@ Telemetry Monitor System — это веб-интерфейс и локальн�
 * Python: Версия 3.10 или выше.
 2. **Клонирование репозитория**
   ```json
-  {
+  
   git clone https://github.com/nikitasipcov-a11y/telemetry-monitor-system.git
   cd telemetry-monitor-system
-  }
+  ```
 3. **Установка зависимостей**
    ```json
    pip install fastapi uvicorn wmi pywin32
+   ```
 4. **Запуск приложения**
      ```json
      python -m uvicorn backend.main:app --reload
+     ```
 После запуска откройте браузер по адресу:
 http://127.0.0.1:8000/
 
