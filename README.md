@@ -110,9 +110,10 @@ Telemetry Monitor System — это веб-интерфейс и локальн�
      ```json
      python -m uvicorn backend.main:app --reload
      ```
-После запуска откройте браузер по адресу:
+**После запуска откройте браузер по адресу:**
 http://127.0.0.1:8000/
-Структура проекта
+
+**Структура проекта**
 ```json
 telemetry-monitor-system/
 ├── backend/
