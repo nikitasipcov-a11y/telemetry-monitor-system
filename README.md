@@ -1,4 +1,4 @@
-﻿# AIDA64 Real-Time Web Dashboard (Telemetry Monitor System)
+# AIDA64 Real-Time Web Dashboard (Telemetry Monitor System)
 
 Telemetry Monitor System — это веб-интерфейс и локальный сервис мониторинга аппаратных компонентов компьютера в реальном времени. Проект создан как облегченный веб-аналог системных утилит вроде AIDA64 или CPU-Z.
 
@@ -91,31 +91,3 @@ Telemetry Monitor System — это веб-интерфейс и локальн�
     }
   ]
 }
-GET /
-
-Возвращает главную страницу веб-интерфейса (frontend/index.html).
-Инструкция по установке и запуску
-1. Системные требования
-
-    ОС: Windows 10 или Windows 11 (64-bit).
-
-    Python: Версия 3.10 или выше.
-
-2. Клонирование репозитория
-git clone [https://github.com/nikitasipcov-a11y/telemetry-monitor-system.git](https://github.com/nikitasipcov-a11y/telemetry-monitor-system.git)
-cd telemetry-monitor-system
-3. Установка зависимостей
-pip install fastapi uvicorn wmi pywin32
-4. Запуск приложения
-python -m uvicorn backend.main:app --reload
-После запуска откройте браузер по адресу:
-
-http://127.0.0.1:8000/
-Структура проекта
-telemetry-monitor-system/
-├── backend/
-│   └── main.py          # Логика FastAPI, WMI-парсер и API роуты
-├── frontend/
-│   └── index.html       # Веб-дашборд (HTML5 / CSS3 / JS)
-├── .gitignore           # Исключения версионного контроля Git
-└── README.md            # Документация проекта
