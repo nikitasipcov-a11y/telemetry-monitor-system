@@ -2,46 +2,346 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Telemetry Monitor Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIDA64 Real-Time Dashboard</title>
     <style>
-        body { font-family: Segoe UI, sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; }
-        .card { background: #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 15px; width: 300px; }
-        .bar-container { background: #334155; border-radius: 8px; height: 20px; overflow: hidden; margin-top: 8px; }
-        .bar { background: #38bdf8; height: 100%; width: 0%; transition: width 0.5s ease; }
-        h1 { color: #38bdf8; }
+        :root {
+            --bg: #0d1117;
+            --card-bg: #161b22;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --border: #30363d;
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 30px 20px; 
+        }
+        .container { max-width: 1100px; margin: 0 auto; }
+        
+        .header-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
+        }
+        
+        h1 { 
+            color: var(--accent); 
+            font-weight: 300; 
+            letter-spacing: 2px; 
+            margin: 0;
+            text-transform: uppercase; 
+            font-size: 1.8rem;
+        }
+
+        .status-panel {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .live-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #238636;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px #238636;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+
+        .btn-refresh {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-refresh:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+            gap: 20px; 
+        }
+        .card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            border-radius: 12px; 
+            padding: 25px; 
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4); 
+            transition: transform 0.2s, border-color 0.2s; 
+        }
+        .card:hover { 
+            border-color: var(--accent); 
+        }
+        .card h2 { 
+            margin-top: 0; 
+            border-bottom: 2px solid var(--border); 
+            padding-bottom: 12px; 
+            font-size: 1.2rem; 
+            color: #ffffff; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .row { 
+            display: flex; 
+            justify-content: space-between; 
+            padding: 8px 0; 
+            border-bottom: 1px solid rgba(48, 54, 61, 0.5); 
+            font-size: 0.9rem; 
+        }
+        .row:last-child { border-bottom: none; }
+        .label { color: var(--text-muted); }
+        .value { font-weight: 500; text-align: right; max-width: 65%; word-break: break-word; }
+        .loader { 
+            text-align: center; 
+            padding: 50px; 
+            font-size: 1.2rem; 
+            color: var(--accent); 
+        }
+        .error { 
+            background: #ff7b7233; 
+            color: #ff7b72; 
+            padding: 20px; 
+            border-radius: 8px; 
+            text-align: center; 
+            border: 1px solid #ff7b72; 
+        }
+        .badge { 
+            display: inline-block; 
+            background: #238636; 
+            color: white; 
+            padding: 2px 6px; 
+            border-radius: 10px; 
+            font-size: 0.75rem; 
+            margin-left: 6px; 
+        }
+        
+        /* Стили кликабельных деталей */
+        details {
+            background: #0d1117;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 10px;
+            padding: 10px 14px;
+            transition: background 0.2s;
+        }
+        details[open] {
+            background: #121820;
+            border-color: var(--accent);
+        }
+        summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--accent);
+            outline: none;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        summary:hover {
+            color: #79c0ff;
+        }
+        .details-content {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+        }
     </style>
 </head>
 <body>
-    <h1>Мониторинг ПК (Real-time Telemetry)</h1>
-    
-    <div class="card">
-        <h3>Загрузка ЦП (CPU): <span id="cpu-val">0</span>%</h3>
-        <div class="bar-container"><div id="cpu-bar" class="bar"></div></div>
-    </div>
+    <div class="container">
+        <div class="header-box">
+            <h1>AIDA64 <span style="color: #ffffff; font-weight: 600;">Live Dashboard</span></h1>
+            <div class="status-panel">
+                <span><span class="live-dot"></span> АВТООБНОВЛЕНИЕ (3s)</span>
+                <button class="btn-refresh" onclick="loadData()">🔄 Обновить</button>
+            </div>
+        </div>
 
-    <div class="card">
-        <h3>Память (RAM): <span id="ram-val">0</span>%</h3>
-        <div class="bar-container"><div id="ram-bar" class="bar"></div></div>
-    </div>
+        <div id="loader" class="loader">Сбор характеристик системы...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div id="dashboard" class="grid" style="display: none;">
+            <!-- Система -->
+            <div class="card">
+                <h2>💻 Система</h2>
+                <div class="row"><span class="label">Операционная система</span><span class="value" id="val-os"></span></div>
+                <div class="row"><span class="label">Материнская плата</span><span class="value" id="val-mobo"></span></div>
+                <div class="row"><span class="label">Обновлено</span><span class="value" id="val-updated" style="color: var(--accent);"></span></div>
+                
+                <details>
+                    <summary>🔍 Подробнее о мат. плате</summary>
+                    <div class="details-content">
+                        <div class="row"><span class="label">Производитель</span><span class="value" id="val-mb-man"></span></div>
+                        <div class="row"><span class="label">Модель</span><span class="value" id="val-mb-prod"></span></div>
+                        <div class="row"><span class="label">Версия</span><span class="value" id="val-mb-ver"></span></div>
+                        <div class="row"><span class="label">Серийный номер</span><span class="value" id="val-mb-ser"></span></div>
+                    </div>
+                </details>
+            </div>
+            
+            <!-- Процессор -->
+            <div class="card">
+                <h2>⚙️ Процессор (CPU)</h2>
+                <div class="row"><span class="label">Модель</span><span class="value" id="val-cpu-name"></span></div>
+                <div class="row"><span class="label">Ядра / Потоки</span><span class="value" id="val-cpu-cores"></span></div>
+                <div class="row"><span class="label">Макс. частота</span><span class="value" id="val-cpu-clock"></span></div>
+                
+                <details>
+                    <summary>🔍 Подробные спеки CPU</summary>
+                    <div class="details-content">
+                        <div class="row"><span class="label">Сокет</span><span class="value" id="val-cpu-socket"></span></div>
+                        <div class="row"><span class="label">Кэш L2</span><span class="value" id="val-cpu-l2"></span></div>
+                        <div class="row"><span class="label">Кэш L3</span><span class="value" id="val-cpu-l3"></span></div>
+                        <div class="row"><span class="label">Архитектура</span><span class="value" id="val-cpu-desc"></span></div>
+                    </div>
+                </details>
+            </div>
 
-    <div class="card">
-        <h3>Диск (Disk): <span id="disk-val">0</span>%</h3>
-        <div class="bar-container"><div id="disk-bar" class="bar"></div></div>
+            <!-- Видеокарта -->
+            <div class="card">
+                <h2>🎮 Видеокарта (GPU)</h2>
+                <div class="row"><span class="label">Модель</span><span class="value" id="val-gpu-name"></span></div>
+                <div class="row"><span class="label">Драйвер</span><span class="value" id="val-gpu-driver"></span></div>
+                <div class="row"><span class="label">Разрешение</span><span class="value" id="val-gpu-res"></span></div>
+                
+                <details>
+                    <summary>🔍 Подробные спеки GPU</summary>
+                    <div class="details-content">
+                        <div class="row"><span class="label">Объем видеопамяти</span><span class="value" id="val-gpu-ram"></span></div>
+                        <div class="row"><span class="label">Видеопроцессор</span><span class="value" id="val-gpu-proc"></span></div>
+                        <div class="row"><span class="label">Тип ЦАП</span><span class="value" id="val-gpu-dac"></span></div>
+                    </div>
+                </details>
+            </div>
+
+            <!-- Оперативная память -->
+            <div class="card" style="grid-row: span 2;">
+                <h2>🖴 Оперативная память</h2>
+                <div id="ram-container"></div>
+            </div>
+
+            <!-- Накопители -->
+            <div class="card" style="grid-row: span 2;">
+                <h2>💾 Накопители</h2>
+                <div id="storage-container"></div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const ws = new WebSocket("ws://127.0.0.1:8000/ws/telemetry");
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            document.getElementById("cpu-val").innerText = data.cpu_load;
-            document.getElementById("cpu-bar").style.width = data.cpu_load + "%";
+        async function loadData() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/system/spec');
+                if (!response.ok) throw new Error('Ошибка сети.');
+                const data = await response.json();
+                
+                if (data.status === 'error') throw new Error(data.message);
 
-            document.getElementById("ram-val").innerText = data.memory_usage;
-            document.getElementById("ram-bar").style.width = data.memory_usage + "%";
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('error').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'grid';
 
-            document.getElementById("disk-val").innerText = data.disk_usage;
-            document.getElementById("disk-bar").style.width = data.disk_usage + "%";
-        };
+                // Заполняем Систему
+                document.getElementById('val-os').textContent = data.os;
+                document.getElementById('val-mobo').textContent = `${data.motherboard.manufacturer} ${data.motherboard.product}`;
+                document.getElementById('val-updated').textContent = new Date().toLocaleTimeString();
+                
+                document.getElementById('val-mb-man').textContent = data.motherboard.manufacturer;
+                document.getElementById('val-mb-prod').textContent = data.motherboard.product;
+                document.getElementById('val-mb-ver').textContent = data.motherboard.version;
+                document.getElementById('val-mb-ser').textContent = data.motherboard.serial;
+
+                // Заполняем CPU
+                document.getElementById('val-cpu-name').textContent = data.cpu.name || 'N/A';
+                document.getElementById('val-cpu-cores').textContent = `${data.cpu.cores} ядер / ${data.cpu.threads} потоков`;
+                document.getElementById('val-cpu-clock').innerHTML = data.cpu.max_clock_mhz ? `<span class="badge" style="background: #d73a49">${data.cpu.max_clock_mhz} MHz</span>` : 'N/A';
+                
+                document.getElementById('val-cpu-socket').textContent = data.cpu.socket || 'N/A';
+                document.getElementById('val-cpu-l2').textContent = data.cpu.l2_cache;
+                document.getElementById('val-cpu-l3').textContent = data.cpu.l3_cache;
+                document.getElementById('val-cpu-desc').textContent = data.cpu.description;
+
+                // Заполняем GPU
+                document.getElementById('val-gpu-name').textContent = data.gpu.name || 'N/A';
+                document.getElementById('val-gpu-driver').textContent = data.gpu.driver || 'N/A';
+                document.getElementById('val-gpu-res').textContent = data.gpu.resolution || 'N/A';
+                
+                document.getElementById('val-gpu-ram').textContent = data.gpu.adapter_ram;
+                document.getElementById('val-gpu-proc').textContent = data.gpu.video_processor;
+                document.getElementById('val-gpu-dac').textContent = data.gpu.dac_type;
+
+                // Заполняем RAM (с выпадающими подробностями по клику)
+                const ramHtml = data.ram.map((r, i) => `
+                    <div style="margin-bottom: 10px;">
+                        <div class="row"><span class="label">Слот ${i + 1} (${r.device_locator || 'DIMM'})</span><span class="value">${r.capacity_gb} GB <span class="badge">${r.speed_mhz} MHz</span></span></div>
+                        <details>
+                            <summary>⚙️ Спецификации модуля ${i + 1}</summary>
+                            <div class="details-content">
+                                <div class="row"><span class="label">Производитель</span><span class="value">${r.manufacturer}</span></div>
+                                <div class="row"><span class="label">Артикул (Part Number)</span><span class="value">${r.part_number}</span></div>
+                                <div class="row"><span class="label">Серийный номер</span><span class="value">${r.serial_number}</span></div>
+                                <div class="row"><span class="label">Напряжение</span><span class="value">${r.voltage}</span></div>
+                                <div class="row"><span class="label">Разъем (Bank)</span><span class="value">${r.bank_label}</span></div>
+                            </div>
+                        </details>
+                    </div>
+                `).join('');
+                document.getElementById('ram-container').innerHTML = ramHtml || '<div class="row">Нет данных</div>';
+
+                // Заполняем Диски (с выпадающими подробностями по клику)
+                const storageHtml = data.storage.map((d, i) => `
+                    <div style="margin-bottom: 10px;">
+                        <div class="row"><span class="label">Диск ${i + 1}</span><span class="value">${d.size_gb} GB <span class="badge" style="background:#8957e5">${d.interface}</span></span></div>
+                        <details>
+                            <summary>⚙️ Спецификации диска ${i + 1}</summary>
+                            <div class="details-content">
+                                <div class="row"><span class="label">Модель</span><span class="value">${d.model}</span></div>
+                                <div class="row"><span class="label">Тип носителя</span><span class="value">${d.media_type}</span></div>
+                                <div class="row"><span class="label">Серийный номер</span><span class="value">${d.serial_number}</span></div>
+                                <div class="row"><span class="label">Версия прошивки</span><span class="value">${d.firmware}</span></div>
+                                <div class="row"><span class="label">Разделы</span><span class="value">${d.partitions}</span></div>
+                            </div>
+                        </details>
+                    </div>
+                `).join('');
+                document.getElementById('storage-container').innerHTML = storageHtml || '<div class="row">Нет данных</div>';
+
+            } catch (err) {
+                const errDiv = document.getElementById('error');
+                errDiv.style.display = 'block';
+                errDiv.textContent = 'Ошибка при загрузке данных: ' + err.message;
+            }
+        }
+
+        // Первичный вызов
+        loadData();
+
+        // Автообновление раз в 3 секунды
+        setInterval(loadData, 3000);
     </script>
 </body>
 </html>
