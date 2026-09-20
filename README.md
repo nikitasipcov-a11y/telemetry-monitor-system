@@ -112,4 +112,11 @@ Telemetry Monitor System — это веб-интерфейс и локальн�
      ```
 После запуска откройте браузер по адресу:
 http://127.0.0.1:8000/
-
+Структура проекта
+telemetry-monitor-system/
+├── backend/
+│   └── main.py          # Логика FastAPI, WMI-парсер и API роуты
+├── frontend/
+│   └── index.html       # Веб-дашборд (HTML5 / CSS3 / JS)
+├── .gitignore           # Исключения версионного контроля Git
+└── README.md            # Документация проекта
