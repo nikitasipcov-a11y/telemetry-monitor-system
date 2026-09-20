@@ -1,1 +1,47 @@
-﻿<!DOCTYPE html><html><head><title>Telemetry</title></head><body><h1>Telemetry Dashboard</h1></body></html>
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Telemetry Monitor Dashboard</title>
+    <style>
+        body { font-family: Segoe UI, sans-serif; background: #0f172a; color: #f8fafc; padding: 20px; }
+        .card { background: #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 15px; width: 300px; }
+        .bar-container { background: #334155; border-radius: 8px; height: 20px; overflow: hidden; margin-top: 8px; }
+        .bar { background: #38bdf8; height: 100%; width: 0%; transition: width 0.5s ease; }
+        h1 { color: #38bdf8; }
+    </style>
+</head>
+<body>
+    <h1>Мониторинг ПК (Real-time Telemetry)</h1>
+    
+    <div class="card">
+        <h3>Загрузка ЦП (CPU): <span id="cpu-val">0</span>%</h3>
+        <div class="bar-container"><div id="cpu-bar" class="bar"></div></div>
+    </div>
+
+    <div class="card">
+        <h3>Память (RAM): <span id="ram-val">0</span>%</h3>
+        <div class="bar-container"><div id="ram-bar" class="bar"></div></div>
+    </div>
+
+    <div class="card">
+        <h3>Диск (Disk): <span id="disk-val">0</span>%</h3>
+        <div class="bar-container"><div id="disk-bar" class="bar"></div></div>
+    </div>
+
+    <script>
+        const ws = new WebSocket("ws://127.0.0.1:8000/ws/telemetry");
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            document.getElementById("cpu-val").innerText = data.cpu_load;
+            document.getElementById("cpu-bar").style.width = data.cpu_load + "%";
+
+            document.getElementById("ram-val").innerText = data.memory_usage;
+            document.getElementById("ram-bar").style.width = data.memory_usage + "%";
+
+            document.getElementById("disk-val").innerText = data.disk_usage;
+            document.getElementById("disk-bar").style.width = data.disk_usage + "%";
+        };
+    </script>
+</body>
+</html>
